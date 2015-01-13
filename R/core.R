@@ -1,20 +1,75 @@
 library(RCurl)
 Empres.data <- function(disease,region=""){
   base.url<-"http://empres-i.fao.org/eipws3g/ei3gmapcompgis/localgs/wfs?SERVICE=WFS&VERSION=1.0.0&REQUEST=GetFeature&TYPENAME=empresi3g:outbreaks&SRSNAME=EPSG:4326&filter="
-  start<-"<And><PropertyIsEqualTo>"
-  disease<-gsub(" ","%20",disease)
-  disease<-paste("<PropertyName>disease</PropertyName><Literal>",disease,"</Literal>",sep="")
-  finish<-"</PropertyIsEqualTo>"
-  del<-"<PropertyIsEqualTo><PropertyName>deleted</PropertyName><Literal>false</Literal></PropertyIsEqualTo>"
-  conf<-"<PropertyIsEqualTo><PropertyName>confidential</PropertyName><Literal>false</Literal></PropertyIsEqualTo></And>"
+  start<-"<And>"
+ ##Disease check and parser  
+  if (length(disease)==0){
+    disease<-""
+  } else if (length(disease)==1){
+     ndisease<-length(disease.check(disease))
+     if (ndisease==1){
+       disease<-parser("equal","disease",disease.check(disease))
+        } else if (ndisease>1){
+          print(paste("More than one disease match for ",disease,". Matching diseases:",sep=""))
+          print(disease.check(disease))
+          dis<-""
+          for (n in 1:ndisease){
+            di<-parser("equal","disease",disease.check(disease)[n])
+            dis<-paste(dis,di,sep="")
+          }
+         disease<-paste("<Or>",dis,"</Or>",sep="")   
+        }
+  }else if(length(disease)>1){
+          nd<-length(disease)
+          dis.k<-""
+          for (k in 1:nd){
+                          ndisease<-length(disease.check(disease[k]))
+                          if (ndisease==1){
+                                           dis<-parser("equal","disease",disease.check(disease[k]))          
+                                          } 
+                          else if (ndisease>1){
+                            print(paste("More than one disease match for ",disease,". Matching diseases:",sep=""))
+                            print(disease.check(disease))
+                                               dis<-""
+                                               for (n in 1:ndisease){
+                                                                     di<-parser("equal","disease",disease.check(disease[k])[n])
+                                                                     dis<-paste(dis,di,sep="")
+                                                                    }
+                                              }
+                           dis.k<-paste(dis.k,dis,sep="")
+                          }
+          disease<-paste("<Or>",dis.k,"</Or>",sep="")
+        }
+##Region parser
+
+  
+  del<-parser("equal","deleted","false")
+  conf<-parser("equal","confidential","false")
+  finish<-"</And>"
   format<-"&outputFormat=CSV"
-  string<-paste(base.url,start,disease,finish,del,conf,format,sep="")
+  string<-paste(base.url,start,disease,del,conf,finish,format,sep="")
   x<-getURL(string,ssl.verifypeer = FALSE)
   y <- read.csv(text = x)
-  print(string)
+  #print(string)
   return(y)
 }
 
+parser<-function(operation, property, value){
+  if (operation=="equal"){
+    opb<-"<PropertyIsEqualTo>"
+    opf<-"</PropertyIsEqualTo>"
+    }else if(operation=="less"){
+      opb<-"<PropertyIsLessThan>"
+      opf<-"</PropertyIsLessThan>"
+    }else if(operation=="greater"){
+      opb<-"<PropertyIsGreaterThan>"
+      opf<-"</PropertyIsGreaterThan>"
+    }
+  pr<-paste("<PropertyName>",gsub(" ","%20",property),"</PropertyName>",sep="")
+  val<- paste("<Literal>",gsub(" ","%20",value),"</Literal>",sep="")
+  result<-paste(opb,pr,val,opf,sep="")
+  return(result)
+}
 
 
 disease.check<-function(disease){
@@ -23,38 +78,11 @@ disease.check<-function(disease){
   rows<-grep(d,disease.list$Udisease,perl=TRUE)
   result<-z$disease[rows]
   } else {
-    result<-"ERROR"
+    stop("Disease not found. Use disease.list() for a list of diseases.")
   }
   return(result)
 }
 
-a<-Empres.data(disease.check(c("brucellosis")))
-unique(a$disease)
-a$confidential
-b<-a[a$disease=="disease",]
-a<-Empres.data(disease.check("african"))
-disease.check("Bluetongue")
-dados<-Empres.data("Foot and mouth disease")
 
-gsub(" ","%20","African swine fever")
 
-x <- getURL("http://empres-i.fao.org/eipws3g/ei3gmapcompgis/localgs/wfs?SERVICE=WFS&VERSION=1.0.0&REQUEST=GetFeature&TYPENAME=empresi3g:outbreaks&propertyname=disease&service=wfs",ssl.verifypeer = FALSE)
 
-y <- read.csv(text = x)
-install.packages("roxygen2")
-unique(a$disease)
-b<-a[a$disease=="African horse sickness",]
-string<-"http://empres-i.fao.org/eipws3g/ei3gmapcompgis/localgs/wfs?service=wfs&version=2.0.0&request=getfeature&typeName=empresi3g:outbreaks&propertyName=disease&maxfeatures=100000&outputFormat=CSV"
-x<-getURL(string,ssl.verifypeer = FALSE)
-y <- read.csv(text = x)
-z<-as.data.frame(unique(y$disease))
-colnames(z)[1]<-"disease"
-sapply(z,%in%,"African swine fever")
-toupper("African Swine fever") %in% z$Udisease
-d<-toupper("brucellosis")
-z$Udisease<-toupper(z$disease)
-which(apply(z, 2, function(x) any(grepl(d, x))))
-which(any(grep(d,z)))
-g<-grep(d,z$disease,perl=TRUE)
-z$disease[g]
-disease.list<-z
