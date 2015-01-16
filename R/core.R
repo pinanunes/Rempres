@@ -1,5 +1,5 @@
 library(RCurl)
-#load("disease_list.RData")
+data("disease_list.RData")
 #' Retrieve outbreak data 
 #' 
 #' @param disease Disease name. To check valid names use disease_list()
