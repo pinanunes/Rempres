@@ -7,8 +7,4 @@ Description: This package provides a function Empres.data() to retrieve outbreak
 Depends: R (>= 4.4.0)
 License: MIT
 LazyData: true
-Imports:
-  dplyr,
-  httr,
-  readr,
-  lubridate
+Imports: dplyr,httr,readr,lubridate
