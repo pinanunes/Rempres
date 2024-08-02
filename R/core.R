@@ -1,9 +1,9 @@
-library(httr)
-library(readr)
-library(dplyr)
-library(lubridate)
+require(httr)
+require(readr)
+require(dplyr)
+require(lubridate)
 
-data("disease_list2.RData")
+data("data/disease_list2.RData")
 #' Retrieve outbreak data
 #'
 #' @param diseasename Disease name. To check valid names use disease_list()
