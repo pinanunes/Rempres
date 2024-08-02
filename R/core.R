@@ -17,7 +17,7 @@ require(lubridate)
 #' @import lubridate
 #' @export
 
-
+data("disease_list2")
 
 Empres.data <- function(diseasename = NA,
                         region = NA,
