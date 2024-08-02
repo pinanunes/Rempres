@@ -3,7 +3,7 @@ require(readr)
 require(dplyr)
 require(lubridate)
 
-data("data/disease_list2.RData")
+
 #' Retrieve outbreak data
 #'
 #' @param diseasename Disease name. To check valid names use disease_list()
