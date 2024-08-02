@@ -1,165 +1,142 @@
-library(RCurl)
-data("disease_list.RData")
-#' Retrieve outbreak data 
-#' 
-#' @param disease Disease name. To check valid names use disease_list()
-#' @param region Globe region. Valid values are "Africa","Asia","Europe","Americas","Oceania"
-#' @param sodate Starting observation date
-#' @param eodate ending observation date
-#' @param srdate Starting reporting date
-#' @param erdate Ending reporting date
-#' @import RCurl
-#' @export
-Empres.data <- function(disease=NA, region=NA,sodate=NA,eodate=NA,srdate=NA,erdate=NA) {
+library(httr)
+library(readr)
+library(dplyr)
+library(lubridate)
 
-  base.url <- "http://empres-i.fao.org/eipws3g/ei3gmapcompgis/localgs/wfs?SERVICE=WFS&VERSION=1.0.0&REQUEST=GetFeature&TYPENAME=empresi3g:outbreaks&SRSNAME=EPSG:4326&filter="
-  start <- "<And>"
-  ## Disease check and parser
-  if (missing(disease)) {
-    disease <- ""
-  } else if (length(disease) == 1) {
-    ndisease <- length(disease.check(disease))
-    if (ndisease == 1) {
-      disease <- parser("equal", "disease", disease.check(disease))
-    } else if (ndisease > 1) {
-      print(paste("More than one disease match for ", disease, ". Matching diseases:", 
-                  sep = ""))
-      print(disease.check(disease))
-      dis <- ""
-      for (n in 1:ndisease) {
-        di <- parser("equal", "disease", disease.check(disease)[n])
-        dis <- paste(dis, di, sep = "")
-      }
-      disease <- paste("<Or>", dis, "</Or>", sep = "")
-    }
-  } else if (length(disease) > 1) {
-    nd <- length(disease)
-    dis.k <- ""
-    for (k in 1:nd) {
-      ndisease <- length(disease.check(disease[k]))
-      if (ndisease == 1) {
-        dis <- parser("equal", "disease", disease.check(disease[k]))
-      } else if (ndisease > 1) {
-        print(paste("More than one disease match for ", disease, 
-                    ". Matching diseases:", sep = ""))
-        print(disease.check(disease))
-        dis <- ""
-        for (n in 1:ndisease) {
-          di <- parser("equal", "disease", disease.check(disease[k])[n])
-          dis <- paste(dis, di, sep = "")
-        }
-      }
-      dis.k <- paste(dis.k, dis, sep = "")
-    }
-    disease <- paste("<Or>", dis.k, "</Or>", sep = "")
-  }
-  ## Region parser
-  if(missing(region)){
-   
-    Reg<-""
-  } else if (length(region)==1){
-   
-    Reg<-parser("equal","region",region.check(region))
-  } else if (length(region)>1){
+data("disease_list2.RData")
+#' Retrieve outbreak data
+#'
+#' @param diseasename Disease name. To check valid names use disease_list()
+#' @param region Globe region. Valid values are "Africa","Asia","Europe","Americas","Oceania"
+#' @param country reporting country
+#' @param start_date Starting observation date
+#' @param end_date ending observation date
+#' @import httr
+#' @import dplyr
+#' @import readr
+#' @import lubridate
+#' @export
+
+
+
+Empres.data <- function(diseasename = NA,
+                        region = NA,
+                        country = NA,
+                        startdate = NA,
+                        enddate = NA) {
+  #disease check
+  # check.date(startdate)
+  start_date <- as.Date(startdate, format = "%Y%m%d")
+  # check.date(enddate)
+  end_date <- as.Date(enddate, format = "%Y%m%d")
   
-    nreg<-length(region)
-    reg<-""
-    for (n in 1:nreg){
-     reg<-paste(reg,parser("equal","region",region.check(region[n])),sep="")  
-    }
-    Reg<-paste("<Or>",reg,"</Or>",sep="")
-  }
+  #
+  # print(paste("Downloading data for:",disease_t))
+  consolidated_data <- data.frame()
+  current_start <- start_date
   
-  ##Date parser
-  if(missing(srdate)){
-    srdt<-""
-  }else{
-    srdt<-parser("greater","reportingDateYYYYMMDD",check.date(srdate))
-  }
-  if(missing(erdate)){
-    erdt<-""
-  }else{
-    erdt<-parser("lesser","reportingDateYYYYMMDD",check.date(erdate))
-  }
-  if(missing(sodate)){
-    sodt<-""
-  }else{
-    sodt<-parser("greater","observationDateYYYYMMDD",check.date(sodate))
-  }
-  if(missing(eodate)){
-    eodt<-""
-  }else{
-    eodt<-parser("lesser","observationDateYYYYMMDD",check.date(eodate))
-  }
+  while (current_start < end_date) {
+    current_end <- min(current_start %m+% months(6) - days(1), end_date)
+    data <- fetch_data(current_start, current_end)
     
-  del <- parser("equal", "deleted", "false")
-  conf <- parser("equal", "confidential", "false")
-  draft<-parser("equal", "draft", "false")
-  finish <- "</And>"
-  format <- "&outputFormat=CSV"
-  sstring <- paste(base.url, start, disease,Reg,sodt,eodt,srdt,erdt,draft,del, conf, finish, format, 
-                  sep = "")
-  x <- getURL(sstring, ssl.verifypeer = FALSE)
-  y <- read.csv(text = x)
-  #y<-y[,c("FID","source,"latitude","longitude","region","localityName","localityQuality","observationDate", "reportingDate","status","disease","serotypes","speciesDescription")]
-  #print(sstring)
-  return(y)
+    if (!is.null(data)) {
+      consolidated_data <- bind_rows(consolidated_data, data)
+    }
+    
+    current_start <- current_end + days(1)
+  }
+  if (!missing(diseasename)>0) {
+    disease_t <- disease.check(diseasename)
+    consolidated_data <- consolidated_data %>% filter(disease %in% disease_t)
+    for(d in disease_t){
+    print(paste("Outbreak data retrieved for:",d, " | ", nrow(consolidated_data[consolidated_data$disease==d,]), "rows found for the date interval"))
+    print(paste("for more information check:",disease_list2$url[disease_list2$disease_name %in% d],";",disease_list2$link_EFSA[disease_list2$disease_name %in% d]))
+    
+    }
+    }else{
+      print( paste("No disease was selected:",nrow(consolidated_data), "rows found"))
+    }  
+      return(consolidated_data)
+
+    
 }
 
-region.check<-function(region){
-  regions<-c("Africa","Asia","Europe","Americas","Oceania")
-  if (any(grep(region,regions, perl = TRUE)) == TRUE) {
-    regn<-grep(region,regions, perl = TRUE)
-    reg<-regions[regn]
-    }
+
+
+fetch_data <- function(start_date, end_date) {
+  url <- "https://europe-west1-fao-empresi.cloudfunctions.net/getLatestEventsByDate"
+  response <- GET(
+    url,
+    query = list(
+      animal_type = "all",
+      diagnosis_status = "confirmed",
+      disease = "all",
+      start_date = start_date,
+      end_date = end_date
+    )
+  )
+  
+  if (response$status_code == 200) {
+    data <- read_csv(content(response, "text"), show_col_types = FALSE)
+    return(data)
+  } else {
+    warning(paste("Failed to fetch data for", start_date, "to", end_date))
+    return(NULL)
+  }
+}
+
+region.check <- function(region) {
+  regions <- c("Africa", "Asia", "Europe", "Americas", "Oceania")
+  if (any(grep(region, regions, perl = TRUE)) == TRUE) {
+    regn <- grep(region, regions, perl = TRUE)
+    reg <- regions[regn]
+  }
   else {
     stop("Region not found. Use region.list() for a list of regions")
   }
   return(reg)
 }
 
-check.date<-function(date){
-  if(nchar(date)<8){ 
+check.date <- function(date) {
+  if (nchar(date) < 8) {
     stop("Date value should be in yyyymmdd format")
-  } else if(as.numeric(substr(date,1,4))<1827){
+  } else if (as.numeric(substr(date, 1, 4)) < 1827) {
     stop("Year value should be higher than 1827")
-  } else if(as.numeric(substr(date,5,6))>12){
+  } else if (as.numeric(substr(date, 5, 6)) > 12) {
     stop("Month value should be between 01 and 12")
-  }else if(as.numeric(substr(date,7,8))>31){
+  } else if (as.numeric(substr(date, 7, 8)) > 31) {
     stop("Day value should be between 01 and 31")
-  } else if(as.numeric(substr(date,7,8))>as.numeric(format(Sys.Date(), "%Y%m%d"))){
+  } else if (as.numeric(substr(date, 7, 8)) > as.numeric(format(Sys.Date(), "%Y%m%d"))) {
     stop("Date should be anterior or equal to the current date")
-  }else {
+  } else {
     return(date)
   }
   
 }
 
-parser <- function(operation, property, value) {
-  if (operation == "equal") {
-    opb <- "<PropertyIsEqualTo>"
-    opf <- "</PropertyIsEqualTo>"
-  } else if (operation == "lesser") {
-    opb <- "<PropertyIsLessThanOrEqualTo>"
-    opf <- "</PropertyIsLessThanOrEqualTo>"
-  } else if (operation == "greater") {
-    opb <- "<PropertyIsGreaterThanOrEqualTo>"
-    opf <- "</PropertyIsGreaterThanOrEqualTo>"
-  }
-  pr <- paste("<PropertyName>", gsub(" ", "%20", property), "</PropertyName>", 
-              sep = "")
-  val <- paste("<Literal>", gsub(" ", "%20", value), "</Literal>", sep = "")
-  result <- paste(opb, pr, val, opf, sep = "")
-  return(result)
-}
 
 
-disease.check <- function(disease) {
-  d <- toupper(disease)
-  if (any(grep(d, disease.list$Udisease, perl = TRUE)) == TRUE) {
-    rows <- grep(d, disease.list$Udisease, perl = TRUE)
-    result <- disease.list$disease[rows]
-  } else {
+disease.check <- function(disease_m) {
+  match1 <- disease_list2 %>% filter(disease_name %in% disease_m)
+  mdisease1 <- match1$disease_name
+  
+  match2 <- disease_list2 %>% filter(acronym %in% disease_m)
+  mdisease2 <- match2$disease_name
+  
+  match3 <- disease_list2 %>% filter(portuguese_name %in% disease_m)
+  mdisease3 <- match3$disease_name
+  
+  match4 <- disease_list2 %>% filter(common_english_name %in% disease_m)
+  mdisease4 <- match4$disease_name
+  
+  match5 <- disease_list2 %>% filter(portuguese_acronym %in% disease_m)
+  mdisease5 <- match5$disease_name
+  
+  match <- rbind(mdisease1, mdisease2, mdisease3, mdisease4, mdisease5)
+  match <- c(unique(match))
+  if (length(match) > 0) {
+    result <- match
+  } else{
     stop("Disease not found. Use disease.list() for a list of diseases.")
   }
   return(result)
