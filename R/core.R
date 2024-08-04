@@ -26,9 +26,9 @@ Empres.data <- function(diseasename = NA,
                         enddate = NA) {
   #disease check
   # check.date(startdate)
-  start_date <- as.Date(startdate, format = "%Y%m%d")
+  start_date <- check.date(startdate)
   # check.date(enddate)
-  end_date <- as.Date(enddate, format = "%Y%m%d")
+  end_date <- check.date(enddate)
   
   #
   # print(paste("Downloading data for:",disease_t))
@@ -51,12 +51,17 @@ Empres.data <- function(diseasename = NA,
     for(d in disease_t){
     print(paste("Outbreak data retrieved for:",d, " | ", nrow(consolidated_data[consolidated_data$disease==d,]), "rows found for the date interval"))
     print(paste("for more information check:",disease_list2$url[disease_list2$disease_name %in% d],";",disease_list2$link_EFSA[disease_list2$disease_name %in% d]))
-    
     }
-    }else{
-      print( paste("No disease was selected:",nrow(consolidated_data), "rows found"))
-    }  
-      return(consolidated_data)
+      }else{
+        print( paste("No disease was selected:",nrow(consolidated_data), "rows found"))
+      }  
+      
+  if(!missing(region)){
+    reg_t<-region.check(region)
+    consolidated_data <- consolidated_data %>% filter(region %in% reg_t)
+    }
+  
+  return(consolidated_data)
 
     
 }
