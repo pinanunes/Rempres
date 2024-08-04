@@ -2,7 +2,7 @@ require(httr)
 require(readr)
 require(dplyr)
 require(lubridate)
-
+data("disease_list2")
 
 #' Retrieve outbreak data
 #'
@@ -16,9 +16,6 @@ require(lubridate)
 #' @import readr
 #' @import lubridate
 #' @export
-
-data("disease_list2")
-
 Empres.data <- function(diseasename = NA,
                         region = NA,
                         country = NA,
