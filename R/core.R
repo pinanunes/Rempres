@@ -108,9 +108,10 @@ check.date <- function(date) {
     stop("Month value should be between 01 and 12")
   } else if (as.numeric(substr(date, 7, 8)) > 31) {
     stop("Day value should be between 01 and 31")
-  } else if (as.numeric(substr(date, 7, 8)) > as.numeric(format(Sys.Date(), "%Y%m%d"))) {
+  } else if (as.Date(date,format="%Y%m%d") > Sys.Date()) {
     stop("Date should be anterior or equal to the current date")
   } else {
+    date<-as.Date(date,format="%Y%m%d")
     return(date)
   }
   
