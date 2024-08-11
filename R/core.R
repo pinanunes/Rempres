@@ -23,8 +23,6 @@ Empres.data <- function(diseasename = NA,
                         startdate = NA,
                         enddate = NA,
                         species = NA) {
-  #disease check
-  # check.date(startdate)
   start_date <- if (!is.na(startdate)) check.date(startdate) else NA
   end_date <- if (!is.na(enddate)) check.date(enddate) else NA
   
