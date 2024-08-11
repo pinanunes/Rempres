@@ -41,7 +41,7 @@ Empres.data <- function(diseasename = NA,
     
     current_start <- current_end + days(1)
   }
-  if (!missing(diseasename)>0) {
+  if (!is.na(diseasename) && length(diseasename) > 0) {
     disease_t <- disease.check(diseasename)
     consolidated_data <- consolidated_data %>% filter(disease %in% disease_t)
     for(d in disease_t){
@@ -52,13 +52,13 @@ Empres.data <- function(diseasename = NA,
         print( paste("No disease was selected:",nrow(consolidated_data), "rows found"))
       }  
       
-  if(!missing(region)){
+  if(!is.na(region)){
     reg_t<-region.check(region)
     consolidated_data <- consolidated_data %>% filter(region %in% reg_t)
     }
   
-  if (!missing(species) && !is.na(species)) {
-    consolidated_data <- consolidated_data %>% filter(grepl(species, species))
+  if (!is.na(species) && length(species) > 0) {
+    consolidated_data <- consolidated_data %>% filter(grepl(species, consolidated_data$species))
     print(paste("Outbreak data retrieved for species:", species, " | ", nrow(consolidated_data), "rows found for the date interval"))
   }
   
