@@ -61,7 +61,7 @@ Empres.data <- function(diseasename = NA,
     }
   
   if (!missing(species) && !is.na(species)) {
-    consolidated_data <- consolidated_data %>% filter(species %in% species)
+    consolidated_data <- consolidated_data %>% filter(grepl(species, species))
     print(paste("Outbreak data retrieved for species:", species, " | ", nrow(consolidated_data), "rows found for the date interval"))
   }
   
@@ -87,6 +87,16 @@ fetch_data <- function(start_date, end_date) {
   
   if (response$status_code == 200) {
     data <- read_csv(content(response, "text"), show_col_types = FALSE)
+    if (!is.null(data)) {
+      data <- data %>%
+        mutate(species_category = case_when(
+          grepl("^\\[\"Domestic", species) ~ "Domestic",
+          grepl("^\\[\"Wild", species) ~ "Wild",
+          grepl("^\\[\"Captive", species) ~ "Captive",
+          grepl("^\\[\"Environmental sample", species) ~ "Environmental sample",
+          TRUE ~ NA_character_
+        ))
+    }
     return(data)
   } else {
     warning(paste("Failed to fetch data for", start_date, "to", end_date))
