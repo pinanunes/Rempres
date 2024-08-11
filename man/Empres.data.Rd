@@ -9,7 +9,8 @@ Empres.data(
   region = NA,
   country = NA,
   startdate = NA,
-  enddate = NA
+  enddate = NA,
+  species = NA
 )
 }
 \arguments{
@@ -18,6 +19,8 @@ Empres.data(
 \item{region}{Globe region. Valid values are "Africa","Asia","Europe","Americas","Oceania"}
 
 \item{country}{reporting country}
+
+\item{species}{Affected species}
 
 \item{start_date}{Starting observation date}
 
