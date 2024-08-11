@@ -25,16 +25,15 @@ Empres.data <- function(diseasename = NA,
                         species = NA) {
   #disease check
   # check.date(startdate)
-  start_date <- check.date(startdate)
-  # check.date(enddate)
-  end_date <- check.date(enddate)
+  start_date <- if (!is.na(startdate)) check.date(startdate) else NA
+  end_date <- if (!is.na(enddate)) check.date(enddate) else NA
   
   #
   # print(paste("Downloading data for:",disease_t))
   consolidated_data <- data.frame()
   current_start <- start_date
   
-  while (current_start < end_date) {
+  while (!is.na(current_start) && !is.na(end_date) && current_start < end_date) {
     current_end <- min(current_start %m+% months(6) - days(1), end_date)
     data <- fetch_data(current_start, current_end)
     
