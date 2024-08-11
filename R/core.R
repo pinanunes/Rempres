@@ -120,30 +120,35 @@ check.date <- function(date) {
 
 
 disease.check <- function(disease_m) {
-  match1 <- disease_list2 %>% filter(disease_name %in% disease_m)
-  mdisease1 <- match1$disease_name
+  result <- c()
   
-  match2 <- disease_list2 %>% filter(acronym %in% disease_m)
-  mdisease2 <- match2$disease_name
-  
-  match3 <- disease_list2 %>% filter(portuguese_name %in% disease_m)
-  mdisease3 <- match3$disease_name
-  
-  match4 <- disease_list2 %>% filter(common_english_name %in% disease_m)
-  mdisease4 <- match4$disease_name
-  
-  match5 <- disease_list2 %>% filter(portuguese_acronym %in% disease_m)
-  mdisease5 <- match5$disease_name
-  
-  match <- rbind(mdisease1, mdisease2, mdisease3, mdisease4, mdisease5)
-  match <- c(unique(match))
-  if (length(match) > 0) {
-    result <- match
-  } else {
-    all_diseases <- c(disease_list2$disease_name, disease_list2$portuguese_name, disease_list2$acronym, disease_list2$common_english_name)
-    distances <- adist(disease_m, all_diseases)
-    closest_match <- all_diseases[which.min(distances)]
-    stop(paste("Disease not found. Did you mean:", closest_match, "? Use disease.list() for a list of diseases."))
+  for (disease in disease_m) {
+    match1 <- disease_list2 %>% filter(disease_name %in% disease)
+    mdisease1 <- match1$disease_name
+    
+    match2 <- disease_list2 %>% filter(acronym %in% disease)
+    mdisease2 <- match2$disease_name
+    
+    match3 <- disease_list2 %>% filter(portuguese_name %in% disease)
+    mdisease3 <- match3$disease_name
+    
+    match4 <- disease_list2 %>% filter(common_english_name %in% disease)
+    mdisease4 <- match4$disease_name
+    
+    match5 <- disease_list2 %>% filter(portuguese_acronym %in% disease)
+    mdisease5 <- match5$disease_name
+    
+    match <- rbind(mdisease1, mdisease2, mdisease3, mdisease4, mdisease5)
+    match <- c(unique(match))
+    if (length(match) > 0) {
+      result <- c(result, match)
+    } else {
+      all_diseases <- c(disease_list2$disease_name, disease_list2$portuguese_name, disease_list2$acronym, disease_list2$common_english_name)
+      distances <- adist(disease, all_diseases)
+      closest_match <- all_diseases[which.min(distances)]
+      stop(paste("Disease not found:", disease, ". Did you mean:", closest_match, "? Use disease.list() for a list of diseases."))
+    }
   }
-  return(result)
+  
+  return(unique(result))
 }
