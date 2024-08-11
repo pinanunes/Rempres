@@ -1,6 +1,6 @@
 Package: Rempres
 Title: A package to retrieve outbreak data from Empres-i database
-Version: 0.2.1
+Version: 0.2.2
 Authors@R: "Telmo Nunes <tnunes@fmv.ulisboa.pt> [aut, cre]"
 Maintainer: Telmo Nunes <tnunes@fmv.ulisboa.pt>
 Description: This package provides a function Empres.data() to retrieve outbreak data from FAO Empres-i database. There are other functions to validate arguments and simplify search queries.
