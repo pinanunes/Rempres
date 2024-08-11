@@ -11,6 +11,7 @@ data("disease_list2")
 #' @param country reporting country
 #' @param start_date Starting observation date
 #' @param end_date ending observation date
+#' @param species Affected species
 #' @import httr
 #' @import dplyr
 #' @import readr
@@ -20,7 +21,8 @@ Empres.data <- function(diseasename = NA,
                         region = NA,
                         country = NA,
                         startdate = NA,
-                        enddate = NA) {
+                        enddate = NA,
+                        species = NA) {
   #disease check
   # check.date(startdate)
   start_date <- check.date(startdate)
@@ -57,6 +59,11 @@ Empres.data <- function(diseasename = NA,
     reg_t<-region.check(region)
     consolidated_data <- consolidated_data %>% filter(region %in% reg_t)
     }
+  
+  if (!missing(species) && !is.na(species)) {
+    consolidated_data <- consolidated_data %>% filter(species %in% species)
+    print(paste("Outbreak data retrieved for species:", species, " | ", nrow(consolidated_data), "rows found for the date interval"))
+  }
   
   return(consolidated_data)
 
