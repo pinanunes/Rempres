@@ -139,8 +139,11 @@ disease.check <- function(disease_m) {
   match <- c(unique(match))
   if (length(match) > 0) {
     result <- match
-  } else{
-    stop("Disease not found. Use disease.list() for a list of diseases.")
+  } else {
+    all_diseases <- c(disease_list2$disease_name, disease_list2$portuguese_name, disease_list2$acronym, disease_list2$common_english_name)
+    distances <- adist(disease_m, all_diseases)
+    closest_match <- all_diseases[which.min(distances)]
+    stop(paste("Disease not found. Did you mean:", closest_match, "? Use disease.list() for a list of diseases."))
   }
   return(result)
 }
