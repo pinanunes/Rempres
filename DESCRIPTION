@@ -8,4 +8,3 @@ License: MIT
 LazyData: true
 Imports: dplyr,httr,readr,lubridate
 RoxygenNote: 7.3.2
-RoxygenNote: 7.3.2

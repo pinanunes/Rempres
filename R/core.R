@@ -1,7 +1,7 @@
-require(httr)
-require(readr)
-require(dplyr)
-require(lubridate)
+library(httr)
+library(readr)
+library(dplyr)
+library(lubridate)
 data("disease_list2")
 
 #' Retrieve outbreak data
@@ -103,8 +103,8 @@ fetch_data <- function(start_date, end_date) {
 
 region.check <- function(region) {
   regions <- c("Africa", "Asia", "Europe", "Americas", "Oceania")
-  if (any(grep(region, regions, perl = TRUE)) == TRUE) {
-    regn <- grep(region, regions, perl = TRUE)
+  regn <- match(region, regions)
+  if (!is.na(regn)) {
     reg <- regions[regn]
   }
   else {
@@ -152,7 +152,7 @@ disease.check <- function(disease_m) {
     match5 <- disease_list2 %>% filter(portuguese_acronym %in% disease)
     mdisease5 <- match5$disease_name
     
-    match <- rbind(mdisease1, mdisease2, mdisease3, mdisease4, mdisease5)
+    match <- c(mdisease1, mdisease2, mdisease3, mdisease4, mdisease5)
     match <- c(unique(match))
     if (length(match) > 0) {
       result <- c(result, match)
