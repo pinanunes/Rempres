@@ -9,8 +9,8 @@ data("disease_list2")
 #' @param diseasename Disease name. To check valid names use disease_list()
 #' @param region Globe region. Valid values are "Africa","Asia","Europe","Americas","Oceania"
 #' @param country reporting country
-#' @param start_date Starting observation date
-#' @param end_date ending observation date
+#' @param start_date Starting observation date in format YYYYMMDD
+#' @param end_date ending observation date in format YYYYMMDD
 #' @param species Affected species
 #' @import httr
 #' @import dplyr

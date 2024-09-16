@@ -22,9 +22,9 @@ Empres.data(
 
 \item{species}{Affected species}
 
-\item{start_date}{Starting observation date}
+\item{start_date}{Starting observation date in format YYYYMMDD}
 
-\item{end_date}{ending observation date}
+\item{end_date}{ending observation date in format YYYYMMDD}
 }
 \description{
 Retrieve outbreak data
